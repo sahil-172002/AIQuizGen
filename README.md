@@ -6,7 +6,7 @@ AIQuizGen is a web application that allows users to generate quizzes using YouTu
 
 - *YouTube Integration*: Generate quizzes from any YouTube video by simply providing the URL.
 - *Topic-Based Quizzes*: Create quizzes by specifying a topic name.
-- *AI-Powered*: Utilizes AI to generate accurate and relevant quiz questions.
+- *AI-Powered*: Utilizes AI to generate accurate and relevant quiz questions
 - *User-Friendly Interface*: Easy-to-use platform for both quiz creators and participants.
 
 ## Getting Started
