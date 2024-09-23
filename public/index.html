@@ -1,158 +1,297 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Generator</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Quiz Generator</title>
     <script src="three.r134.min.js"></script>
     <script src="vanta.waves.min.js"></script>
-    <link rel="stylesheet" href="style.css">
-    <script defer src="https://cloud.umami.is/script.js" data-website-id="6ceb0adf-2661-4a2f-bba0-39d0ea257b7b"></script>
-    
-</head>
+    <link rel="stylesheet" href="style.css" />
+  </head>
 
-<body>
+  <body>
     <div class="home-div">
-        <h1 class="gradient-text">YouTube Video Quiz Generator</h1>
-        <p class="text">🎥 Watch YouTube 📝 Generate Quiz 🧠 Test Yourself</p>
-        <input type="text" id="videoUrl" name="videoUrl" placeholder="Enter YouTube Video URL">
-        <button id="generateBtn" class="gradient-btn" onclick="generateQuiz()">Generate Quiz</button>
-        <a href="/aiquiz.html   "  class="ai-quiz-link"> Explore our topic-based quiz generator!</a>
-        <!-- <button id="generateBtn" class="gradient-btn">
-            Topic Based Quiz <a href="/aiquiz.html"></a>
-        </button> -->
+      <h1 class="gradient-text">
+        Topic Based Quiz <br />
+        Generator
+      </h1>
+      <p class="text">📜Enter Topic 📝 Generate Quiz 🧠 Test Yourself</p>
+      <textarea
+        type="text"
+        id="topic"
+        name="topic"
+        placeholder="Enter a topic..."
+        autocomplete="off"
+      ></textarea>
+      <div class="select-div">
+        <div>
+          <label for="difficulty">Difficulty</label>
+          <select name="difficulty" id="difficulty" class="selectOptions">
+            <option class="selectDiff" value="easy">Easy</option>
+            <option class="selectDiff" value="medium" selected>Medium</option>
+            <option class="selectDiff" value="hard">Hard</option>
+          </select>
+        </div>
+        <div>
+          <label for="numOfQuestions">Number of Questions</label>
+          <select
+            name="numOfQuestions"
+            id="numOfQuestions"
+            class="selectOptions"
+          >
+            <option class="selectDiff" value="10" selected>10</option>
+            <option class="selectDiff" value="20">20</option>
+          </select>
+        </div>
+      </div>
+      <button id="generateBtn" class="gradient-btn" onclick="generateQuiz()">
+        Generate Quiz
+      </button>
     </div>
     <div class="quiz-div hidden">
-        <h1 class="gradient-text">Quiz</h1>
-        <div class="quiz-container">
-            <p id="quizTitle" class="gradient-text">Chess for Beginners: A Comprehensive Introduction</p>
-            <div class="quiz">
-                <p class="question-num">Question 1 of 10</p>
-                <p class="question" id="question">What is the value of a pawn in chess?</p>
-                <ul class="options">
-                    <li><button class="option" id="option1" onclick="checkAnswer(0)"></button></li>
-                    <li><button class="option" id="option2" onclick="checkAnswer(1)"></button></li>
-                    <li><button class="option" id="option3" onclick="checkAnswer(2)"></button></li>
-                    <li><button class="option" id="option4" onclick="checkAnswer(3)"></button></li>
-                </ul>
-                <button class="gradient-btn" id="nextBtn">Next</button>
-            </div>
-            <div class="scoreDiv">
-                <p id="score">score</p>
-                <button class="gradient-btn back" id="backBtn">Back</button>
-            </div>
+      <h1 class="gradient-text">Quiz</h1>
+      <div class="quiz-container">
+        <p id="quizTitle" class="gradient-text">Chess for Beginners</p>
+        <div class="quiz">
+          <p class="question-num">Question 1 of 10</p>
+          <p class="question" id="question">
+            What is the value of a pawn in chess?
+          </p>
+          <ul class="options">
+            <li>
+              <button
+                class="option"
+                id="option1"
+                onclick="checkAnswer(0)"
+              ></button>
+            </li>
+            <li>
+              <button
+                class="option"
+                id="option2"
+                onclick="checkAnswer(1)"
+              ></button>
+            </li>
+            <li>
+              <button
+                class="option"
+                id="option3"
+                onclick="checkAnswer(2)"
+              ></button>
+            </li>
+            <li>
+              <button
+                class="option"
+                id="option4"
+                onclick="checkAnswer(3)"
+              ></button>
+            </li>
+          </ul>
+          <div class="explanationDiv" id="explanationDiv">
+            <span>Explanation: </span>
+            <p class="explanation" id="explanation">
+              Explanation of the correct answer
+            </p>
+          </div>
+          <button class="gradient-btn" id="nextBtn">Next</button>
         </div>
+        <div class="scoreDiv">
+          <p id="score">score</p>
+          <div class="chart-container" style="display: none">
+            <canvas id="resultChart"></canvas>
+          </div>
+          <button class="gradient-btn back" id="backBtn">Back</button>
+        </div>
+      </div>
     </div>
     <div class="decorators top"></div>
     <div class="decorators bottom"></div>
-    <!-- <div class="decorators"></div> -->
-    
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-    
-   
-
-    window.addEventListener('DOMContentLoaded', () => { 
-            window.VANTA.WAVES({
-                el: "body", 
-                mouseControls: true,
-                touchControls: true,
-                gyroControls: false,
-                minHeight: 200.0,
-                minWidth: 200.0,
-                scale: 1.00,
-  scaleMobile: 1.00,
-  color: 0x80404,
-  shininess: 36.00,
-  waveHeight: 15.50,
-  waveSpeed: 0.80,
-  zoom: 1.0,
-            });
+      window.addEventListener("DOMContentLoaded", () => {
+        window.VANTA.WAVES({
+          el: "body",
+          mouseControls: true,
+          touchControls: true,
+          gyroControls: false,
+          minHeight: 200.0,
+          minWidth: 200.0,
+          scale: 1.0,
+          scaleMobile: 1.0,
+          color: 0x80404,
+          shininess: 36.0,
+          waveHeight: 15.5,
+          waveSpeed: 0.8,
+          zoom: 1.0,
         });
+      });
+      let quizzes = [];
+      let currentQuestion = 0;
+      let score = 0;
+      const homeDivEl = document.querySelector(".home-div");
+      const quizDivEl = document.querySelector(".quiz-div");
+      const generateBtnEl = document.getElementById("generateBtn");
+      const nextBtnEl = document.getElementById("nextBtn");
+      const scoreElement = document.getElementById("score");
+      const quizTitle = document.getElementById("quizTitle");
+      const difficultyEl = document.getElementById("difficulty");
+      const numberOfQuestionsEl = document.getElementById("numOfQuestions");
+      const explanationDiv = document.getElementById("explanationDiv");
+      const explanationEl = document.getElementById("explanation");
 
-        let quizzes = [];
-        let currentQuestion = 0;
-        let score = 0;
-        const homeDivEl = document.querySelector(".home-div")
-        const quizDivEl = document.querySelector(".quiz-div")
-        const generateBtnEl = document.getElementById("generateBtn")
-        const nextBtnEl = document.getElementById("nextBtn")
-        const scoreElement = document.getElementById("score");
-        const quizTitle = document.getElementById("quizTitle")
-        async function generateQuiz() {
-            generateBtnEl.setAttribute("disabled", "true")
-            generateBtnEl.textContent = "Generating..."
-            document.querySelector(".scoreDiv").classList.add("hidden")
-            document.querySelector(".quiz").style.display = "flex"
-            const videoUrl = document.getElementById("videoUrl").value;
-            const response = await fetch(`/generate-youtube-quiz?url=${videoUrl}`);
-            const data = await response.json();
-            if (data.error) {
-                alert(data.error);
-                generateBtnEl.textContent = "Generate"
-            } else {
-                homeDivEl.classList.add("hidden")
-                quizDivEl.classList.remove("hidden")
-                quizzes = data.quizzes;
-                currentQuestion = 0;
-                score = 0;
-                displayQuestion();
-            }
-            generateBtnEl.removeAttribute("disabled")
-            quizTitle.textContent = data.title
+      let difficulty = difficultyEl.value;
+      let numberOfQuestions = numberOfQuestionsEl.value;
+      difficultyEl.addEventListener("change", () => {
+        difficulty = difficultyEl.value;
+      });
+      numberOfQuestionsEl.addEventListener("change", () => {
+        numberOfQuestions = numberOfQuestionsEl.value;
+        console.log(numberOfQuestions);
+      });
+
+      async function generateQuiz() {
+        const topic = document.getElementById("topic").value;
+        if (!topic) {
+          alert("Please provide a topic.");
+          return;
         }
+        generateBtnEl.setAttribute("disabled", "true");
+        generateBtnEl.textContent = "Generating...";
+        document.querySelector(".scoreDiv").classList.add("hidden");
+        document.querySelector(".quiz").style.display = "flex";
 
-        function displayQuestion() {
-            document.querySelector(".question-num").textContent = `Question ${currentQuestion + 1} of ${quizzes.length}`
-            document.querySelectorAll('.option').forEach((option) => {
-                option.classList.remove("incorrect-answer")
-                option.classList.remove("correct-answer")
-                option.removeAttribute("disabled")
-            })
-            const currentQuiz = quizzes[currentQuestion];
-
-            document.getElementById("question").textContent = currentQuiz.question
-            document.getElementById("option1").textContent = currentQuiz.options[0]
-            document.getElementById("option2").textContent = currentQuiz.options[1]
-            document.getElementById("option3").textContent = currentQuiz.options[2]
-            document.getElementById("option4").textContent = currentQuiz.options[3]
+        const response = await fetch(`/generate-quiz`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            topic: topic,
+            difficulty: difficulty,
+            numberOfQuestions: numberOfQuestions,
+          }),
+        });
+        const data = await response.json();
+        if (data.error) {
+          alert(data.error);
+          generateBtnEl.textContent = "Generate";
+        } else {
+          homeDivEl.classList.add("hidden");
+          quizDivEl.classList.remove("hidden");
+          quizzes = data.quizzes;
+          currentQuestion = 0;
+          score = 0;
+          displayQuestion();
         }
-        nextBtnEl.addEventListener("click", () => {
-            if (currentQuestion < quizzes.length) {
-                displayQuestion();
-            } else {
-                showFinalScore();
-            }
-        })
+        generateBtnEl.removeAttribute("disabled");
+        quizTitle.textContent = data.title;
+      }
 
-        function checkAnswer(selectedIndex) {
-            const currentQuiz = quizzes[currentQuestion];
-            const selectedOptionEl = document.querySelectorAll('.option')[selectedIndex];
-            if (currentQuiz.correct_option === currentQuiz.options[selectedIndex]) {
-                score++;
-                selectedOptionEl.classList.add("correct-answer")
-            } else {
-                const correctIndex = currentQuiz.options.indexOf(currentQuiz.correct_option);
-                selectedOptionEl.classList.add("incorrect-answer")
-                document.querySelectorAll('.option')[correctIndex].classList.add("correct-answer")
-            }
-            currentQuestion++;
-            document.querySelectorAll('.option').forEach((el) => el.setAttribute("disabled", "true"))
+      function displayQuestion() {
+        explanationDiv.style.display = "none";
+        document.querySelector(".question-num").textContent = `Question ${
+          currentQuestion + 1
+        } of ${quizzes.length}`;
+        document.querySelectorAll(".option").forEach((option) => {
+          option.classList.remove("incorrect-answer");
+          option.classList.remove("correct-answer");
+          option.removeAttribute("disabled");
+        });
+        const currentQuiz = quizzes[currentQuestion];
+
+        document.getElementById("question").textContent = currentQuiz.question;
+        document.getElementById("option1").textContent = currentQuiz.options[0];
+        document.getElementById("option2").textContent = currentQuiz.options[1];
+        document.getElementById("option3").textContent = currentQuiz.options[2];
+        document.getElementById("option4").textContent = currentQuiz.options[3];
+      }
+      nextBtnEl.addEventListener("click", () => {
+        if (currentQuestion < quizzes.length) {
+          displayQuestion();
+        } else {
+          showFinalScore();
         }
+      });
 
-        function showFinalScore() {
-            document.querySelector(".scoreDiv").classList.remove("hidden")
-            document.getElementById("score").textContent = `Your final score is: ${score} out of ${quizzes.length}`;
-            document.querySelector(".quiz").style.display = "none"
-            document.getElementById("backBtn").addEventListener("click", () => {
-                quizDivEl.classList.add("hidden")
-                homeDivEl.classList.remove("hidden")
-            })
-            generateBtnEl.textContent = "Generate"
-            document.getElementById("videoUrl").value = ""
+      function checkAnswer(selectedIndex) {
+        const currentQuiz = quizzes[currentQuestion];
+        const selectedOptionEl =
+          document.querySelectorAll(".option")[selectedIndex];
+        if (currentQuiz.correct_option === currentQuiz.options[selectedIndex]) {
+          score++;
+          selectedOptionEl.classList.add("correct-answer");
+        } else {
+          const correctIndex = currentQuiz.options.indexOf(
+            currentQuiz.correct_option
+          );
+          selectedOptionEl.classList.add("incorrect-answer");
+          document
+            .querySelectorAll(".option")
+            [correctIndex].classList.add("correct-answer");
+          explanationDiv.style.display = "block";
+          explanationEl.textContent = currentQuiz.explanation;
         }
+        currentQuestion++;
+        document
+          .querySelectorAll(".option")
+          .forEach((el) => el.setAttribute("disabled", "true"));
+      }
 
+      function showFinalScore() {
+        document.querySelector(".scoreDiv").classList.remove("hidden");
+        document.getElementById(
+          "score"
+        ).textContent = `Your final score is: ${score} out of ${quizzes.length}`;
+        document.querySelector(".quiz").style.display = "none";
+        document.querySelector(".chart-container").style.display = "block";
+        showResultChart(score, quizzes.length);
+        document.getElementById("backBtn").addEventListener("click", () => {
+          quizDivEl.classList.add("hidden");
+          homeDivEl.classList.remove("hidden");
+          document.querySelector(".chart-container").style.display = "none";
+        });
+        generateBtnEl.textContent = "Generate Quiz";
+        document.getElementById("topic").value = "";
+      }
+
+      function showResultChart(correct, total) {
+        const incorrect = total - correct;
+        const ctx = document.getElementById("resultChart").getContext("2d");
+
+        new Chart(ctx, {
+          type: "pie",
+          data: {
+            labels: ["Correct", "Incorrect"],
+            datasets: [
+              {
+                data: [correct, incorrect],
+                backgroundColor: [
+                  "rgba(75, 255, 0, 0.8)",
+                  "rgba(255, 99, 132, 0.8)",
+                ],
+                borderColor: ["rgba(75, 192, 192, 1)", "rgba(255, 99, 132, 1)"],
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: "bottom",
+              },
+              title: {
+                display: true,
+                text: "Quiz Results",
+                font: {
+                  size: 18,
+                },
+              },
+            },
+          },
+        });
+      }
     </script>
-</body>
-
+  </body>
 </html>

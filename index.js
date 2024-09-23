@@ -1,72 +1,99 @@
 require("dotenv").config();
-const express = require('express');
+const express = require("express");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const ytt = require("youtube-transcript");
-const path = require('path');
+const path = require("path");
 
 const app = express();
 const port = process.env.PORT || 3000;
-app.use(express.json());
+
 const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 
-app.use(express.static(path.join(__dirname, 'public')));
-app.get('/generate-youtube-quiz', async (req, res) => {
-    const videoUrl = req.query.url;
-    if (!videoUrl) {
-        return res.status(400).json({ error: "No video URL provided" });
-    }
+app.use(express.static(path.join(__dirname, "public")));
+app.use(express.json());
+app.post("/generate-quiz", async (req, res) => {
+  const { topic, difficulty, numberOfQuestions } = req.body;
+  try {
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash-latest",
+    });
+    const prompt = `You are an expert quiz generator specializing in educational content. Your task is to create a well-structured, engaging, and informative quiz based on the following parameters:
+Topic: ${topic}
+Difficulty level: ${difficulty}
+Number of questions: ${numberOfQuestions}
+Please follow these guidelines:
 
-    try {
-        const transcript = await ytt.YoutubeTranscript.fetchTranscript(videoUrl);
-        let data = transcript.map(item => item.text).join(" ");
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+Assess the topic:
 
-        const prompt = `You are a sophisticated natural language processing AI specialized in analyzing YouTube video transcripts.
-The transcript is as follows: ${data}
-Perform the following task using the transcript data provided:
-If the transcript is not in English Output the following text: {"error": "I cannot comprehend this language at the moment."}
-else,
-Check whether the transcript data content is educational 
-If yes do the follwoing
-generate 10 quiz related to that data and output the quiz in following text format:
-{"title":"title of the quiz","quizzes": [{"question": "Question 1", "options": ["Option A", "Option B", "Option C", "Option D"], "correct_option": "Option A"}, {"question": "Question 2", "options": ["Option A", "Option B", "Option C", "Option D"], "correct_option": "Option B"}, ..., {"question": "Question 10", "options": ["Option A", "Option B", "Option C", "Option D"], "correct_option": "Option C"}]}.
-The quizz should have one question and 4 options only.
+Ensure the topic is educational and appropriate for quiz creation.
+If the topic is not educational or suitable, respond with:
+{"error": "Unfortunately, this topic does not meet the standards of educational content."}
 
+
+Create the quiz:
+If the topic is suitable, generate a quiz adhering to these criteria:
+a. Title: Create a concise, relevant title that accurately reflects the quiz content.
+b. Questions: Formulate clear, unambiguous questions that align with the specified difficulty level.
+c. Options: Provide exactly 4 options (A, B, C, D) for each question.
+d. Correct answer: Clearly indicate the correct option.
+e. Explanation: Offer a brief, informative explanation for the correct answer.
+Ensure variety:
+
+Mix different types of questions (e.g., multiple-choice, true/false formatted as multiple-choice, fill-in-the-blank presented as multiple-choice).
+Cover various aspects of the topic to provide a comprehensive assessment.
+
+
+Maintain consistency:
+
+Use a uniform style and formatting throughout the quiz.
+Ensure all questions have only 4 options.
+
+
+Tailor to difficulty level:
+
+Adjust the complexity of questions, vocabulary, and concepts to match the specified difficulty level.
+
+
+Verify accuracy:
+
+Double-check all information for factual correctness.
+Ensure there is only one unambiguously correct answer per question.
+
+
+Output format:
+Present the quiz in the following JSON format:
+{
+"title": "Title of the Quiz",
+"quizzes": [
+{
+"question": "Question",
+"options": ["Option A", "Option B", "Option C", "Option D"],
+"correct_option": "Option A",
+"explanation": "Explanation of the correct answer"
+}
+]
+}
+Final check:
+
+Confirm that the number of questions matches ${numberOfQuestions}.
+Verify that each question has exactly 4 options.
+Ensure the JSON structure is valid and properly formatted.
 `;
 
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
-        const jsonString = text.replace(/^```json\s*|```$/g, '')
-        res.json(JSON.parse(jsonString));
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ error: "Sorry, this video can't be processed at this moment." });
-    }
-});
-
-app.post('/generate-owntopic-quiz', async (req, res) => {
-    const { topic } = req.body
-    try {
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-        const prompt = `You are a quiz generator expert.
-The topic is as follows: ${topic}
-Perform the following task for the topic provided:
-Generate 10 quiz related to the topic and output the quiz in following text format:
-{"title":"title of the quiz","quizzes": [{"question": "Question 1", "options": ["Option A", "Option B", "Option C", "Option D"], "correct_option": "Option A"}, {"question": "Question 2", "options": ["Option A", "Option B", "Option C", "Option D"], "correct_option": "Option B"}, ..., {"question": "Question 10", "options": ["Option A", "Option B", "Option C", "Option D"], "correct_option": "Option C"}]}.
-Make sure the question and options are precise.
-If the topic is not educational Output the following text {"error": "Unfortunately, this topic does not meet the standards of educational content."}
-`;
-
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
-        const jsonString = text.replace(/^```json\s*|```$/g, '')
-        res.json(JSON.parse(jsonString));
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ error: "Sorry, the request can't be processed at this moment. Please try again." });
-    }
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    const jsonString = text.replace(/^```json\s*|```$/g, "");
+    res.json(JSON.parse(jsonString));
+  } catch (e) {
+    console.error(e);
+    res
+      .status(500)
+      .json({
+        error:
+          "Sorry, the request can't be processed at this moment. Please try again.",
+      });
+  }
 });
 
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+  console.log(`Server is running on port ${port}`);
 });
